@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
+import listingRouter from './routes/listing.route.js'
 import cookieParser from 'cookie-parser';
 dotenv.config(); //initializing donenv
 
@@ -31,6 +32,7 @@ app.listen(3000, ()=>{
 
 app.use('/api/user', userRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/auth', listingRouter);
 
 //MiddleWare for error handling and we using it in auth.controller.js as next(error)
 app.use((err, req, res, next)=>{
