@@ -16,7 +16,7 @@ export default function Profile() {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const dispatch = useDispatch();
 
-  // firebase storage
+  // firebase storage rules
   // allow read;
   // allow write: if
   // request.resource.size < 2 * 1024 * 1024 &&
@@ -53,7 +53,7 @@ export default function Profile() {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
   const handleSubmit= async(e)=>{
-    e.preventDefault();
+    e.preventDefault();  //prevent refreshing the page on submitting
     try{
       dispatch(updateUserStart());
       const res = await fetch(`/api/user/update/${currentUser._id}`,{

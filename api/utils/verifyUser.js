@@ -11,5 +11,6 @@ export const verifyToken = (req, res, next) => {
 
     req.user = user;
     next();
+    //after verity token, it will going to next section which is update user.
   });
 };
