@@ -2,10 +2,12 @@ import { useState } from "react"
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateListing() {
+    const navigate = useNavigate();
     const { currentUser } = useSelector(state => state.user)
-    const [files, setFiles] = useState([]);
+    const [files, setFiles] = useState([]); //[] for getting multiple images
     const [formData, setFormData] = useState({
         imageUrls: [],
         name: '',
@@ -27,7 +29,7 @@ export default function CreateListing() {
     console.log(formData);
     const handleImageSubmit = (e) => {
         if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
-            const promises = [];
+            const promises = []; //here more than one promise because there are more than one asyc behaviour when images uploading one by one so we need to wait for all of them.
             setUploading(true);
             setImageUploadError(false);
             for (let i = 0; i < files.length; i++) {
@@ -105,6 +107,10 @@ export default function CreateListing() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            if(formData.imageUrls.length<1) 
+                return setError("You must upload at least one image!")
+            if(+formData.regularPrice< +formData.discountPrice)
+                return setError("Discount price must be lower than regular price");
             setLoading(true);
             setError(false);
             const res = await fetch('/api/listing/create', {
@@ -122,8 +128,9 @@ export default function CreateListing() {
             if (data.success === false) {
                 setError(data.message);
             }
+            navigate(`/listing/${data._id}`)
         } catch (error) {
-            setError(error.message);
+             setError(error.message);
             setLoading(false)
         }
     }
@@ -167,19 +174,21 @@ export default function CreateListing() {
                             <p>Baths</p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <input onChange={handleChange} value={formData.regularPrice} type="number" id='regularPrice' min='1000' max='10000' required className="p-3 border border-gray-300 rounded-lg" />
+                            <input onChange={handleChange} value={formData.regularPrice} type="number" id='regularPrice' min='0' max='10000000000' required className="p-3 border border-gray-300 rounded-lg" />
                             <div className="flex flex-col items-center">
                                 <p>Regular price</p>
                                 <span className="text-xs">(Rs / month)</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <input onChange={handleChange} value={formData.discountPrice} type="number" id='discountPrice' min='100' max='1000' required className="p-3 border border-gray-300 rounded-lg" />
-                            <div className="flex flex-col items-center">
-                                <p>Discounted price</p>
-                                <span className="text-xs">(Rs / month)</span>
+                        {formData.offer && (
+                            <div className="flex items-center gap-2">
+                                <input onChange={handleChange} value={formData.discountPrice} type="number" id='discountPrice' min='0' max='10000' required className="p-3 border border-gray-300 rounded-lg" />
+                                <div className="flex flex-col items-center">
+                                    <p>Discounted price</p>
+                                    <span className="text-xs">(Rs / month)</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-col flex-1 gap-4">
@@ -197,7 +206,7 @@ export default function CreateListing() {
                             </div>
                         ))
                     }
-                    <button className="p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Creating...' : 'Create listing'}</button>
+                    <button disabled={loading || uploading} className="p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80">{loading ? 'Creating...' : 'Create listing'}</button>
                     {error && <p className="text-red-700 text-sm">{error}</p>}
                 </div>
             </form>
